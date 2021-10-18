@@ -1,0 +1,880 @@
+<P>
+
+<P><HTML>
+<HEAD>
+<TITLE>Simply Scheme:Project: A Database Program</TITLE>
+</HEAD>
+<BODY>
+<CITE>Simply Scheme</CITE>:
+<CITE>Introducing Computer Science</CITE> 2/e Copyright (C) 1999 MIT
+<H1>Project: A Database Program</H1>
+
+<TABLE width="100%"><TR><TD>
+<IMG SRC="../simply.jpg" ALT="cover photo">
+<TD><TABLE>
+<TR><TD align="right"><CITE><A HREF="http://www.cs.berkeley.edu/~bh/">Brian
+Harvey</A><BR>University of California, Berkeley</CITE>
+<TR><TD align="right"><CITE><A HREF="http://ccrma.stanford.edu/~matt">Matthew
+Wright</A><BR>University of California, Santa Barbara</CITE>
+<TR><TD align="right"><BR>
+<TR><TD align="right"><A HREF="../pdf/ssch25.pdf">Download PDF version</A>
+<TR><TD align="right"><A HREF="../ss-toc2.html">Back to Table of Contents</A>
+<TR><TD align="right"><A HREF="../ssch25/spread-implement.html"><STRONG>BACK</STRONG></A>
+chapter thread <A HREF="../ssch26/part7.html"><STRONG>NEXT</STRONG></A>
+<TR><TD align="right"><A HREF="http://mitpress.mit.edu/0262082810">MIT
+Press web page for <CITE>Simply Scheme</CITE></A>
+</TABLE></TABLE>
+
+<HR>
+
+<P>A <EM>database</EM> is a large file with lots of related data in it.
+For example, you might have a database of your local Chinese restaurants,
+listing their names, their addresses, and how good their potstickers are,
+like this:<A NAME="text0" HREF="#ft0">[0]</A>
+
+<P><PRE>Name:           Address:                  City:           Potstickers:
+
+Cal's           1866 Euclid               Berkeley        nondescript
+Hunan           924 Sansome               San Francisco   none
+Mary Chung's    464 Massachusetts Avenue  Cambridge       great
+Shin Shin       1715 Solano Avenue        Berkeley        awesome
+TC Garden       2507 Hearst Avenue        Berkeley        doughy
+Yet Wah         2140 Clement              San Francisco   fantastic
+</PRE>
+
+<P>There are six <EM>records</EM> in this database, one for each restaurant.
+Each record contains four pieces of information; we say that the
+database has four <EM>fields.</EM>
+
+<P>A <EM>database program</EM> is a program that can create, store, modify, and
+examine databases.  At the very least, a database program must let you
+create new databases, enter records, and save the database to a file.  More
+sophisticated operations involve sorting the records in a database by a
+particular field, printing out the contents of the database, counting the
+number of records that satisfy a certain condition, taking statistics such as
+averages, and so on.
+
+<P>There are many commercial database programs available; our version will have
+some of the flavor of more sophisticated programs while leaving out a lot of
+the details.
+
+<P><H2>A Sample Session with Our Database</H2>
+
+<P>Most database programs come with their own programming language built in.
+Our database program will use Scheme itself as the language; you will be able
+to perform database commands by invoking Scheme procedures at the Scheme
+prompt.  Here is a sample session with our program:
+
+<P><PRE>&gt; (load &quot;database.scm&quot;)
+#F
+&gt; (new-db &quot;albums&quot; '(artist title year brian-likes?))
+CREATED
+</PRE>
+
+<P>First we loaded the database program, then we created a new
+database called <CODE>&quot;albums&quot;</CODE><A NAME="text1" HREF="#ft1">[1]</A> with four fields.<A NAME="text2" HREF="#ft2">[2]</A>
+Let's enter some data:
+
+<P><PRE>&gt; (insert)
+Value for ARTIST--&gt; (the beatles)
+Value for TITLE--&gt; &quot;A Hard Day's Night"
+Value for YEAR--&gt; 1964
+Value for BRIAN-LIKES?--&gt; #t
+Insert another? yes
+Value for ARTIST--&gt; (the zombies)
+Value for TITLE--&gt; &quot;Odessey and Oracle"
+Value for YEAR--&gt; 1967
+Value for BRIAN-LIKES?--&gt; #t
+Insert another? y
+Value for ARTIST--&gt; (frank zappa)
+Value for TITLE--&gt; &quot;Hot Rats"
+Value for YEAR--&gt; 1970
+Value for BRIAN-LIKES?--&gt; #f
+Insert another? y
+Value for ARTIST--&gt; (the beatles)
+Value for TITLE--&gt; &quot;Rubber Soul"
+Value for YEAR--&gt; 1965
+Value for BRIAN-LIKES?--&gt; #t
+Insert another? no
+INSERTED
+</PRE>
+
+<P>(We used strings for the album titles but sentences for the
+artists, partly because one of the titles has an apostrophe in it, but
+mainly just to demonstrate that fields can contain any data type.)
+
+<P>At this point we start demonstrating features that aren't actually in the
+version of the program that we've provided.  You will implement these
+features in this project.  We're showing them now as if the project were
+finished to convey the overall flavor of how the program should work.
+
+<P>We can print out the information in a database, and count the number of
+records:<A NAME="text3" HREF="#ft3">[3]</A>
+
+<P><PRE>&gt; (list-db)
+RECORD 1
+ARTIST: (THE BEATLES)
+TITLE: Rubber Soul
+YEAR: 1965
+BRIAN-LIKES?: #T
+
+RECORD 2
+ARTIST: (FRANK ZAPPA)
+TITLE: Hot Rats
+YEAR: 1970
+BRIAN-LIKES?: #F
+
+RECORD 3
+ARTIST: (THE ZOMBIES)
+TITLE: Odessey and Oracle
+YEAR: 1967
+BRIAN-LIKES?: #T
+
+RECORD 4
+ARTIST: (THE BEATLES)
+TITLE: A Hard Day's Night
+YEAR: 1964
+BRIAN-LIKES?: #T
+
+LISTED
+&gt; (count-db)
+4
+</PRE>
+
+<P>We can insert new records into the database later on:
+
+<P><PRE>&gt; (insert)
+Value for ARTIST--&gt; (the bill frisell band)
+Value for TITLE--&gt; &quot;Where in the World?"
+Value for YEAR--&gt; 1991
+Value for BRIAN-LIKES?--&gt; #f
+Insert another? no
+INSERTED
+</PRE>
+
+<P>We can sort the records of the database, basing the sorting order on a
+particular field:
+
+<P><PRE>&gt; (sort-on 'year)
+YEAR
+
+&gt; (list-db)
+RECORD 1
+ARTIST: (THE BEATLES)
+TITLE: A Hard Day's Night
+YEAR: 1964
+BRIAN-LIKES?: #T
+
+RECORD 2
+ARTIST: (THE BEATLES)
+TITLE: Rubber Soul
+YEAR: 1965
+BRIAN-LIKES?: #T
+
+RECORD 3
+ARTIST: (THE ZOMBIES)
+TITLE: Odessey and Oracle
+YEAR: 1967
+BRIAN-LIKES?: #T
+
+RECORD 4
+ARTIST: (FRANK ZAPPA)
+TITLE: Hot Rats
+YEAR: 1970
+BRIAN-LIKES?: #F
+
+RECORD 5
+ARTIST: (THE BILL FRISELL BAND)
+TITLE: Where in the World?
+YEAR: 1991
+BRIAN-LIKES?: #F
+
+LISTED
+</PRE>
+
+<P>We can change the information in a record:
+
+<P><PRE>&gt; (edit-record 1)
+ARTIST: (THE BEATLES)
+TITLE: A Hard Day's Night
+YEAR: 1964
+BRIAN-LIKES?: #T
+
+Edit which field?  title
+New value for TITLE--&gt; &quot;A Hard Day's Night (original soundtrack)"
+ARTIST: (THE BEATLES)
+TITLE: A Hard Day's Night (original soundtrack)
+YEAR: 1964
+BRIAN-LIKES?: #T
+
+Edit which field?  #f
+EDITED
+</PRE>
+
+<P>(The <CODE>edit-record</CODE> procedure takes a record number as its
+argument.  In this case, we wanted the first record.  Also, the way you stop
+editing a record is by entering <CODE>#f</CODE> as the field name.)
+
+<P>Finally, we can save a database to a file and retrieve it later:
+
+<P><PRE>&gt; (save-db)
+SAVED
+
+&gt; (load-db &quot;albums&quot;)
+LOADED
+</PRE>
+
+<P><H2>How Databases Are Stored Internally</H2>
+
+<P>Our program will store a database as a vector of three elements: the file
+name associated with the database, a list of the names of the fields of the
+database, and a list of records in the database.
+
+<P>Each record of the database is itself a vector, containing values for
+the various fields.  (So the length of a record vector depends on the number
+of fields in the database.)
+
+<P>Why is each record a vector, but the collection of records a
+list?  Records have to be vectors because they are mutable; the <CODE>edit</CODE>
+command lets you change the value of a field for a record.  But there is no
+command to replace an entire record with a new one, so the list of records
+doesn't have to be mutable.
+
+<P>An advantage of storing the records in a list instead of a vector is that
+it's easy to insert new records.  If you've got a new record and a list of
+the old records, you simply <CODE>cons</CODE> the new record onto the old ones, and
+that's the new list.  You need to mutate the vector that represents the
+entire database to contain this new list instead of the old one, but you
+don't need to mutate the list itself.
+
+<P>Here's the <CODE>albums</CODE> database we created, as it looks to Scheme:
+
+<P><PRE>#(&quot;albums"
+  (ARTIST TITLE YEAR BRIAN-LIKES?)
+  (#((THE BEATLES) &quot;A Hard Day's Night (original soundtrack)&quot; 1964 #T)
+   #((THE BEATLES) &quot;Rubber Soul&quot; 1965 #T)
+   #((THE ZOMBIES) &quot;Odessey and Oracle&quot; 1967 #T)
+   #((FRANK ZAPPA) &quot;Hot Rats&quot; 1970 #F)
+   #((THE BILL FRISELL BAND) &quot;Where in the World?&quot; 1991 #F)))
+</PRE>
+
+<P>We'll treat databases as an abstract data type; here is how we implement it:
+
+<P><PRE>;;; The database ADT: a filename, list of fields and list of records
+
+(define (<A NAME="g1"></A>make-db filename fields records)
+  (vector filename fields records))
+
+(define (<A NAME="g2"></A>db-filename db)
+  (vector-ref db 0))
+
+(define (<A NAME="g3"></A>db-set-filename! db filename)
+  (vector-set! db 0 filename))
+
+(define (<A NAME="g4"></A>db-fields db)
+  (vector-ref db 1))
+
+(define (<A NAME="g5"></A>db-set-fields! db fields)
+  (vector-set! db 1 fields))
+
+(define (<A NAME="g6"></A>db-records db)
+  (vector-ref db 2))
+
+(define (<A NAME="g7"></A>db-set-records! db records)
+  (vector-set! db 2 records))
+</PRE>
+
+<P><H2>The Current Database</H2>
+
+<P>The database program works on one database at a time.  Every command
+implicitly refers to the current database.  Since the program might
+switch to a new database, it has to keep the current database in a
+vector that it can mutate if necessary.  For now, the current
+database is the only state information that the program keeps, so
+it's stored in a vector of length one.  If there is no current
+database (for example, when you start the database program), the
+value <CODE>#f</CODE> is stored in this vector:
+
+<P><PRE>(define current-state (vector #f))
+
+(define (<A NAME="g8"></A>no-db?)
+  (not (vector-ref current-state 0)))
+
+(define (<A NAME="g9"></A>current-db)
+  (if (no-db?)
+      (error &quot;No current database!&quot;)
+      (vector-ref current-state 0)))
+
+(define (<A NAME="g10"></A>set-current-db! db)
+  (vector-set! current-state 0 db))
+
+(define (<A NAME="g11"></A>current-fields)
+  (db-fields (current-db)))
+</PRE>
+
+<P><H2>Implementing the Database Program Commands</H2>
+
+<P>Once we have the basic structure of the database program, the work consists
+of inventing the various database operations.  Here is the <CODE>new-db</CODE>
+procedure:
+
+<P><PRE>(define (<A NAME="g12"></A>new-db filename fields)
+  (set-current-db! (make-db filename fields '()))
+  'created)
+</PRE>
+
+<P>(Remember that when you first create a database there are no
+records in it.)
+
+<P>Here's the <CODE>insert</CODE> procedure:
+
+<P><PRE>(define (<A NAME="g13"></A>insert)
+  (let ((new-record (get-record)))
+    (db-insert new-record (current-db)))
+  (if (ask &quot;Insert another? &quot;)
+      (insert)
+      'inserted))
+
+(define (<A NAME="g14"></A>db-insert record db)
+  (db-set-records! db (cons record (db-records db))))
+
+(define (<A NAME="g15"></A>get-record)
+  (get-record-loop 0
+		   (make-vector (length (current-fields)))
+		   (current-fields)))
+
+(define (<A NAME="g16"></A>get-record-loop which-field record fields)
+  (if (null? fields)
+      record
+      (begin (display &quot;Value for &quot;)
+	     (display (car fields))
+	     (display &quot;--&gt; &quot;)
+	     (vector-set! record which-field (read))
+	     (get-record-loop (+ which-field 1) record (cdr fields)))))
+
+(define (<A NAME="g17"></A>ask question)
+  (display question)
+  (let ((answer (read)))
+    (cond ((equal? (first answer) 'y) #t)
+	  ((equal? (first answer) 'n) #f)
+	  (else (show &quot;Please type Y or N.&quot;)
+		(ask question)))))
+</PRE>
+
+<P><H2>Additions to the Program</H2>
+
+<P>The database program we've shown so far has the structure of a more
+sophisticated program, but it's missing almost every feature you'd want it
+to have.  Some of the following additions are ones that we've demonstrated,
+but for which we haven't provided an implementation; others are introduced
+here for the first time.
+
+<P>In all of these additions, think about possible error conditions and how to
+handle them.  Try to find a balance between failing even on errors that are
+very likely to occur and having an entirely safe program that has more error
+checking than actual content.
+
+<H3><CODE>Count-db</CODE></H3>
+
+<P>Implement the <CODE><A NAME="g18"></A>count-db</CODE> procedure.  It should take no arguments,
+and it should return the number of records in the current database.
+
+<H3><CODE>List-db</CODE></H3>
+
+<P>Implement the <CODE><A NAME="g19"></A>list-db</CODE> procedure.  It should take no arguments,
+and it should print the current database in the format shown earlier.
+
+<H3><CODE>Edit-record</CODE></H3>
+
+<P>Implement <CODE><A NAME="g20"></A>edit-record,</CODE> which takes a number between one and the
+number of records in the current database as its argument.  It should allow
+the user to interactively edit the given record of the current database, as
+shown earlier.
+
+<H3><CODE>Save-db</CODE> and </CODE>Load-db</CODE></H3>
+
+<P>Write <CODE><A NAME="g21"></A>save-db</CODE> and <CODE><A NAME="g22"></A>load-db.</CODE> <CODE>Save-db</CODE> should
+take no arguments and should save the current database into a file with the
+name that was given when the database was created.  Make sure to save the
+field names as well as the information in the records.
+
+<P><CODE>Load-db</CODE> should take one argument, the filename of the database you
+want to load.  It should replace the current database with the one in the
+specified file.  (Needless to say, it should expect files to be in the
+format that <CODE>save-db</CODE> creates.)
+
+<P>In order to save information to a file in a form that Scheme will be able to
+read back later, you will need to use the <CODE>write</CODE> procedure instead of
+<CODE>display</CODE> or <CODE>show</CODE>, as discussed in Chapter 22.
+
+<H3><CODE>Clear-current-db!</CODE></H3>
+
+<P>The <CODE>new-db</CODE> and <CODE>load-db</CODE> procedures change the current database.
+<CODE>New-db</CODE> creates a new, blank database, while <CODE>load-db</CODE> reads in an
+old database from a file.  In both cases, the program just throws out
+the current database.  If you forgot to save it, you could lose a lot of
+work.
+
+<P>Write a procedure <CODE><A NAME="g23"></A>clear-current-db!</CODE> that clears the current
+database.  If there is no current database, <CODE>clear-current-db!</CODE> should
+do nothing.  Otherwise, it should ask the user whether to save the
+database, and if so it should call <CODE>save-db</CODE>.
+
+<P>Modify <CODE>new-db</CODE> and <CODE>load-db</CODE> to invoke <CODE>clear-current-db!</CODE>.
+
+<H3><CODE>Get</CODE></H3>
+
+<P>Many of the kinds of things that you would want to do to a database involve
+looking up the information in a record by the field name.  For example, the
+user might want to list only the artists and titles of the album
+database, or sort it by year, or list only the albums that Brian likes.
+
+<P>But this isn't totally straightforward, since a record doesn't contain any
+information about names of fields.  It doesn't make sense to ask what value
+the <CODE>price</CODE> field has in the record
+
+<P><PRE>#(SPROCKET 15 23 17 2)
+</PRE>
+
+<P>without knowing the names of the fields of the current database
+and their order.
+
+<P>Write a procedure <CODE><A NAME="g24"></A>get</CODE> that takes two arguments, a field name
+and a record, and returns the given field of the given record.  It should
+work by looking up the field name in the list of field names of the current
+database.
+
+<P><PRE>&gt; (get 'title '#((the zombies) &quot;Odessey and Oracle&quot; 1967 #t))
+&quot;Odessey and Oracle"
+</PRE>
+
+<P><CODE>Get</CODE> can be thought of as a selector for the record data type.  To
+continue the implementation of a record ADT, write a constructor <CODE>blank-record</CODE> that takes no arguments and returns a record with no values in
+its fields.  (Why doesn't <CODE>blank-record</CODE> need any arguments?)  Finally,
+write the mutator <CODE>record-set!</CODE> that takes three arguments: a field
+name, a record, and a new value for the corresponding field.
+
+<P>Modify the rest of the database program to use this ADT instead of directly
+manipulating the records as vectors.
+
+<H3><CODE>Sort</CODE></H3>
+
+<P>Write a <CODE><A NAME="g25"></A>sort</CODE> command that takes a predicate as its argument and
+sorts the database according to that predicate.  The predicate should take
+two records as arguments and return <CODE>#t</CODE> if the first record belongs
+before the second one, or <CODE>#f</CODE> otherwise.  Here's an example:
+
+<P><PRE>&gt; (sort (lambda (r1 r2) (before? (get 'title r1) (get 'title r2))))
+SORTED
+
+&gt; (list-db)
+RECORD 1
+ARTIST: (THE BEATLES)
+TITLE: A Hard Day's Night (original soundtrack)
+YEAR: 1964
+BRIAN-LIKES?: #T
+
+RECORD 2
+ARTIST: (FRANK ZAPPA)
+TITLE: Hot Rats
+YEAR: 1970
+BRIAN-LIKES?: #F
+
+RECORD 3
+ARTIST: (THE ZOMBIES)
+TITLE: Odessey and Oracle
+YEAR: 1967
+BRIAN-LIKES?: #T
+
+RECORD 4
+ARTIST: (THE BEATLES)
+TITLE: Rubber Soul
+YEAR: 1965
+BRIAN-LIKES?: #T
+
+RECORD 5
+ARTIST: (THE BILL FRISELL BAND)
+TITLE: Where in the World?
+YEAR: 1991
+BRIAN-LIKES?: #F
+
+LISTED
+
+&gt; (sort (lambda (r1 r2) (&lt; (get 'year r1) (get 'year r2))))
+SORTED
+
+&gt; (list-db)
+RECORD 1
+ARTIST: (THE BEATLES)
+TITLE: A Hard Day's Night (original soundtrack)
+YEAR: 1964
+BRIAN-LIKES?: #T
+
+RECORD 2
+ARTIST: (THE BEATLES)
+TITLE: Rubber Soul
+YEAR: 1965
+BRIAN-LIKES?: #T
+
+RECORD 3
+ARTIST: (THE ZOMBIES)
+TITLE: Odessey and Oracle
+YEAR: 1967
+BRIAN-LIKES?: #T
+
+RECORD 4
+ARTIST: (FRANK ZAPPA)
+TITLE: Hot Rats
+YEAR: 1970
+BRIAN-LIKES?: #F
+
+RECORD 5
+ARTIST: (THE BILL FRISELL BAND)
+TITLE: Where in the World?
+YEAR: 1991
+BRIAN-LIKES?: #F
+
+LISTED
+</PRE>
+
+<P>Note: Don't invent a sorting algorithm for this problem.  You can
+just use one of the sorting procedures from Chapter 15 and modify it
+slightly to sort a list of records instead of a sentence of words.
+
+<H3><CODE>Sort-on-by</CODE></H3>
+
+<P>Although <CODE>sort</CODE> is a very general-purpose tool, the way that you have
+to specify how to sort the database is cumbersome.  Write a procedure
+<CODE>sort-on-by</CODE> that takes two arguments, the name of a field and a
+predicate.  It should invoke <CODE>sort</CODE> with an appropriate predicate to
+achieve the desired sort.  For example, you could say
+
+<P><PRE>(sort-on-by 'title before?)
+</PRE>
+
+<P>and
+
+<P><PRE>(sort-on-by 'year &lt;)
+</PRE>
+
+<P>instead of the two <CODE>sort</CODE> examples we showed earlier.
+
+<H3><CODE>Generic-before?</CODE></H3>
+
+<P>The next improvement is to eliminate the need to specify a predicate
+explicitly.  Write a procedure <CODE><A NAME="g26"></A>generic-before?</CODE> that takes two
+arguments of any types and returns <CODE>#t</CODE> if the first comes before the
+second.  The meaning of &quot;before&quot; depends on the types of the arguments:
+
+<P>If the arguments are numbers, <CODE>generic-before?</CODE> should use <CODE>&lt;</CODE>.
+If the arguments are words that aren't numbers, then <CODE>generic-before?</CODE> 
+should use <CODE>before?</CODE> to make the comparison.
+
+<P>What if the arguments are lists?  For example, suppose you want to sort on
+the <CODE>artist</CODE> field in the albums example.  The way to compare two lists
+is element by element, just as in the <CODE>sent-before?</CODE> procedure in
+Chapter 14.
+
+<P><PRE>&gt; (generic-before? '(magical mystery tour) '(yellow submarine))
+#T
+&gt; (generic-before? '(is that you?) '(before we were born))
+#F
+&gt; (generic-before? '(bass desires) '(bass desires second sight))
+#T
+</PRE>
+
+<P>But <CODE>generic-before?</CODE> should also work for structured lists:
+
+<P><PRE>&gt; (generic-before? '(norwegian wood (this bird has flown))
+		   '(norwegian wood (tastes so good)))
+#F
+</PRE>
+
+<P>What if the two arguments are of different types?  If you're comparing a
+number and a non-numeric word, compare them alphabetically.  If you're
+comparing a word to a list, treat the word as a one-word list, like
+this:
+
+<P><PRE>&gt; (generic-before? '(in line) 'rambler)
+#T
+
+&gt; (generic-before? '(news for lulu) 'cobra)
+#F
+</PRE>
+
+<H3><CODE>Sort-on</CODE></H3>
+
+<P>Now write <CODE><A NAME="g27"></A>sort-on</CODE>, which takes the name of a field as its
+argument and sorts the current database on that field, using <CODE>generic-before?</CODE> as the comparison predicate.
+
+<H3><CODE>Add-field</CODE></H3>
+
+<P>Sometimes you discover that you don't have enough fields in your database.
+Write a procedure <CODE><A NAME="g28"></A>add-field</CODE> that takes two arguments: the
+name of a new field and an initial value for that field.  <CODE>Add-field</CODE> 
+should modify the current database to include the new field.  Any existing
+records in the database should be given the indicated initial value for the
+field.  Here's an example:
+
+<P><PRE>&gt; (add-field 'category 'rock)
+ADDED
+
+&gt; (edit-record 5)
+CATEGORY: ROCK
+ARTIST: (THE BILL FRISELL BAND)
+TITLE: Where in the World?
+YEAR: 1991
+BRIAN-LIKES?: #F
+
+Edit which field?  category
+New value for CATEGORY--&gt; jazz
+CATEGORY: JAZZ
+ARTIST: (THE BILL FRISELL BAND)
+TITLE: Where in the World?
+YEAR: 1991
+BRIAN-LIKES?: #F
+
+Edit which field?  #f
+EDITED
+
+&gt; (list-db)
+RECORD 1
+CATEGORY: ROCK
+ARTIST: (THE BEATLES)
+TITLE: A Hard Day's Night (original soundtrack)
+YEAR: 1964
+BRIAN-LIKES?: #T
+
+RECORD 2
+CATEGORY: ROCK
+ARTIST: (THE BEATLES)
+TITLE: Rubber Soul
+YEAR: 1965
+BRIAN-LIKES?: #T
+
+RECORD 3
+CATEGORY: ROCK
+ARTIST: (THE ZOMBIES)
+TITLE: Odessey and Oracle
+YEAR: 1967
+BRIAN-LIKES?: #T
+
+RECORD 4
+CATEGORY: ROCK
+ARTIST: (FRANK ZAPPA)
+TITLE: Hot Rats
+YEAR: 1970
+BRIAN-LIKES?: #F
+
+RECORD 5
+CATEGORY: JAZZ
+ARTIST: (THE BILL FRISELL BAND)
+TITLE: Where in the World?
+YEAR: 1991
+BRIAN-LIKES?: #F
+
+LISTED
+</PRE>
+
+<P>If you like, you can write <CODE>add-field</CODE> so that it will accept either
+one or two arguments.  If given only one argument, it should use <CODE>#f</CODE>
+as the default field value.
+
+<P>Note: We said earlier that each record is a vector but the
+collection of records is a list because we generally want to mutate fields
+in a record, but not add new ones, whereas we generally want to add new
+records, but not replace existing ones completely.  This problem is an
+exception; we're asking you to add an element to a vector.  To do this,
+you'll have to create a new, longer vector for each record.  Your program
+will probably run slowly as a result.  This is okay because adding fields to
+an existing database is very unusual.  Commercial database programs are also
+slow at this; now you know why.
+
+<P>You can't solve this problem in a way that respects the current version of
+the record ADT.  Think about trying to turn the record
+
+<P><PRE>#((THE BEATLES) &quot;Rubber Soul&quot; 1965 #T)
+</PRE>
+
+<P>into the record
+
+<P><PRE>#(ROCK (THE BEATLES) &quot;Rubber Soul&quot; 1965 #T)
+</PRE>
+
+<P>It seems simple enough: Make a new record of the correct size, and fill in
+all the values of the old fields from the old record.  But does this happen
+before or after you change the list of current fields in the database?  If
+before, you can't call <CODE>blank-record</CODE> to create a new record of the
+correct size.  If after, you can't call <CODE>get</CODE> to extract the field values
+of the old record, because the field names have changed.
+
+<P>There are (at least) three solutions to this dilemma.  One is to abandon the
+record ADT, since it's turning out to be more trouble than it's worth.
+Using the underlying vector tools, it would be easy to transform old-field
+records into new-field records.
+
+<P>The second solution is to create another constructor for records, <CODE>adjoin-field</CODE>.  <CODE>Adjoin-field</CODE> would take a record and a new
+field value, and would be analogous to <CODE>cons</CODE>.
+
+<P>The last solution is the most complicated, but perhaps the most elegant.
+The reason our ADT doesn't work is that <CODE>get</CODE>, <CODE>record-set!</CODE>, and
+<CODE>blank-record</CODE> don't just get information from their arguments; they
+also examine the current fields of the database.  You could write a new ADT
+implementation in which each procedure took a list of fields as an extra
+argument. Then <CODE>get</CODE>, <CODE>record-set!</CODE>, and <CODE>blank-record</CODE> could be
+implemented in this style:
+
+<P><PRE>(define (get fieldname record)
+  (get-with-these-fields fieldname record (current-fields)))
+</PRE>
+
+<P><CODE>Add-field</CODE> could use the underlying ADT, and the rest of the
+program could continue to use the existing version.
+
+<P>We've put a lot of effort into figuring out how to design this small part of
+the overall project.  Earlier we showed you examples in which using an ADT
+made it <EM>easy</EM> to modify a program; those were realistic, but it's
+also realistic that sometimes making an ADT work can add to the effort.
+
+<H3><CODE>Save-selection</CODE></H3>
+
+<P>Write a <CODE>save-selection</CODE> procedure that's similar to <CODE>save-db</CODE> but
+saves only the currently selected records.  It should take a file name as
+its argument.
+
+<H3><CODE>Merge-db</CODE></H3>
+
+<P>One of the most powerful operations on a database is to merge it with
+another database.  Write a procedure <CODE><A NAME="g29"></A>merge-db</CODE> that takes two
+arguments: the file name of another database and the name of a field that
+the given database has in common with the current database.  Both databases
+(the current one and the one specified) must already be sorted by the given
+field.
+
+<P>The effect of the <CODE>merge-db</CODE> command is to add fields from the specified 
+database to the records of the current database.  For example, suppose you
+had a database called <CODE>&quot;bands&quot;</CODE> with the following information:
+
+<P><PRE>Artist:                   Members:
+(rush)                    (geddy alex neil)
+(the beatles)             (john paul george ringo)
+(the bill frisell band)   (bill hank kermit joey)     
+(the zombies)             (rod chris colin hugh paul)
+</PRE>
+
+<P>You should be able to do the following (assuming <CODE>&quot;albums&quot;</CODE> is
+the current database):
+
+<P><PRE>&gt; (sort-on 'artist)
+ARTIST
+
+&gt; (merge-db &quot;bands&quot; 'artist)
+MERGED
+
+&gt; (list-db)
+RECORD 1
+CATEGORY: ROCK
+ARTIST: (FRANK ZAPPA)
+TITLE: Hot Rats
+YEAR: 1970
+BRIAN-LIKES?: #F
+MEMBERS: #F
+
+RECORD 2
+CATEGORY: ROCK
+ARTIST: (THE BEATLES)
+TITLE: A Hard Day's Night (original soundtrack)
+YEAR: 1964
+BRIAN-LIKES?: #T
+MEMBERS: (JOHN PAUL GEORGE RINGO)
+
+RECORD 3
+CATEGORY: ROCK
+ARTIST: (THE BEATLES)
+TITLE: Rubber Soul
+YEAR: 1965
+BRIAN-LIKES?: #T
+MEMBERS: (JOHN PAUL GEORGE RINGO)
+
+RECORD 4
+CATEGORY: JAZZ
+ARTIST: (THE BILL FRISELL BAND)
+TITLE: Where in the World?
+YEAR: 1991
+BRIAN-LIKES?: #F
+MEMBERS: (BILL HANK KERMIT JOEY)
+
+RECORD 5
+CATEGORY: ROCK
+ARTIST: (THE ZOMBIES)
+TITLE: Odessey and Oracle
+YEAR: 1967
+BRIAN-LIKES?: #T
+MEMBERS: (ROD CHRIS COLIN HUGH PAUL)
+
+LISTED
+</PRE>
+
+<P>Since there was no entry for Frank Zappa in the <CODE>&quot;bands&quot;</CODE> database, the <CODE>members</CODE> field was given the default value <CODE>#f</CODE>.  If there are two or more records in the specified database with the
+same value for the given field, just take the information from the first one.
+
+<P>(By the way, this problem has a lot in common with the <CODE>join</CODE> procedure
+from Exercise <A HREF="../ssch22/files.html#join">22.8</A>.)
+
+<P>This is a complicated problem, so we're giving a hint:
+
+<P><PRE>(define (merge-db other-name common-field)
+  (let ((other-db (read-db-from-disk other-name))
+	(original-fields (current-fields)))
+    (set-current-fields! (merge-fields original-fields
+ 				       (db-fields other-db)))
+    (set-current-records! (merge-db-helper original-fields
+					   (current-records)
+					   (db-fields other-db)
+					   (db-records other-db)
+					   common-field))))
+</PRE>
+
+<P>This procedure shows one possible overall structure
+for the program.  You can fill in the structure by writing the
+necessary subprocedures.  (If you prefer to start with a different
+overall design, that's fine too.)  Our earlier suggestion about
+writing a <CODE>get-with-these-fields</CODE> procedure is relevant here also.
+
+<P>
+<H2>Extra Work for Hotshots</H2>
+
+<P>Compare your program to a real database program and see if you can add some
+of its features.  For example, many database programs have primitive
+facilities for averaging the value of a field over certain records.  Another
+feature you might want to try to implement is two-dimensional printing,
+in which each column is a field and each row is a record.
+
+<P>
+<HR>
+<A NAME="ft0" HREF="#text0">[0]</A> [online-only footnote] Alas, two of these
+restaurants are no more.  If you're in the Cal's vicinity, you'll have to
+settle for TC Garden; if you're in the Shin Shin vicinity, try Kirin,
+1767 Solano Ave.<P>
+<A NAME="ft1" HREF="#text1">[1]</A> The double-quote marks are
+necessary because <CODE>albums</CODE> will be used as a filename when we save the
+database to a file.<P>
+<A NAME="ft2" HREF="#text2">[2]</A> We don't need a
+<CODE>matt-likes?</CODE> field because Matt likes all the albums in this database.<P>
+<A NAME="ft3" HREF="#text3">[3]</A> Readers who are old enough to remember the days before
+compact discs may be disturbed by the ambiguity of the word &quot;record,&quot;
+which could mean either a database record or a phonograph record.  Luckily,
+in our example it doesn't matter, because each database record represents
+a phonograph record.  But we intend the word &quot;record&quot; to mean a database
+record; we'll say &quot;album&quot; if we mean the musical kind.<P>
+<P><A HREF="../ss-toc2.html">(back to Table of Contents)</A><P>
+<A HREF="../ssch25/spread-implement.html"><STRONG>BACK</STRONG></A>
+chapter thread <A HREF="../ssch26/part7.html"><STRONG>NEXT</STRONG></A>
+
+<P>
+<ADDRESS>
+<A HREF="../index.html">Brian Harvey</A>, 
+<CODE>bh@cs.berkeley.edu</CODE>
+</ADDRESS>
+</BODY>
+</HTML>
